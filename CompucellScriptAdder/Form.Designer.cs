@@ -30,8 +30,9 @@
         {
             this.btnOpen = new System.Windows.Forms.Button();
             this.lblProjectPath = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.tbxProjectPath = new System.Windows.Forms.TextBox();
             this.btnTemperaturePanelScript = new System.Windows.Forms.Button();
+            this.btnEncrpyt = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnOpen
@@ -53,12 +54,12 @@
             this.lblProjectPath.TabIndex = 1;
             this.lblProjectPath.Text = "ProjectPath";
             // 
-            // textBox1
+            // tbxProjectPath
             // 
-            this.textBox1.Location = new System.Drawing.Point(96, 70);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(321, 20);
-            this.textBox1.TabIndex = 2;
+            this.tbxProjectPath.Location = new System.Drawing.Point(96, 70);
+            this.tbxProjectPath.Name = "tbxProjectPath";
+            this.tbxProjectPath.Size = new System.Drawing.Size(321, 20);
+            this.tbxProjectPath.TabIndex = 2;
             // 
             // btnTemperaturePanelScript
             // 
@@ -70,13 +71,25 @@
             this.btnTemperaturePanelScript.UseVisualStyleBackColor = true;
             this.btnTemperaturePanelScript.Click += new System.EventHandler(this.btnTemperaturePanelScript_Click);
             // 
+            // btnEncrpyt
+            // 
+            this.btnEncrpyt.Location = new System.Drawing.Point(31, 12);
+            this.btnEncrpyt.Name = "btnEncrpyt";
+            this.btnEncrpyt.Size = new System.Drawing.Size(76, 23);
+            this.btnEncrpyt.TabIndex = 4;
+            this.btnEncrpyt.Text = "Encrypt";
+            this.btnEncrpyt.UseVisualStyleBackColor = true;
+            this.btnEncrpyt.Visible = false;
+            this.btnEncrpyt.Click += new System.EventHandler(this.btnEncrpyt_Click);
+            // 
             // Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(544, 241);
+            this.Controls.Add(this.btnEncrpyt);
             this.Controls.Add(this.btnTemperaturePanelScript);
-            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.tbxProjectPath);
             this.Controls.Add(this.lblProjectPath);
             this.Controls.Add(this.btnOpen);
             this.Name = "Form";
@@ -90,8 +103,9 @@
 
         private System.Windows.Forms.Button btnOpen;
         private System.Windows.Forms.Label lblProjectPath;
-        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox tbxProjectPath;
         private System.Windows.Forms.Button btnTemperaturePanelScript;
+        private System.Windows.Forms.Button btnEncrpyt;
     }
 }
 
