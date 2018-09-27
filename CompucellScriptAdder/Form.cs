@@ -49,21 +49,21 @@ namespace CompucellScriptAdder
                                     if (reader.Read())
                                     {
                                         resourceFilePath = Path.GetDirectoryName(fileName) + "/" + reader.Value;
-                                        MessageBox.Show(resourceFilePath);
+                                        //MessageBox.Show(resourceFilePath);
                                     }
                                     break;
                                 case "PythonScript":
                                     if (reader.Read())
                                     {
                                         pythonScriptFilePath = Path.GetDirectoryName(fileName) + "/" + reader.Value;
-                                        MessageBox.Show(pythonScriptFilePath);
+                                        //MessageBox.Show(pythonScriptFilePath);
                                     }
                                     break;
                                 case "Resource":
                                     if (reader.Read())
                                     {
                                         resourceFilePath = Path.GetDirectoryName(fileName) + "/" + reader.Value;
-                                        MessageBox.Show(resourceFilePath);
+                                        //MessageBox.Show(resourceFilePath);
                                     }
                                     break;
                             }
