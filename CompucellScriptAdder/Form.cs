@@ -29,7 +29,6 @@ namespace CompucellScriptAdder
             OpenFileDialog theDialog = new OpenFileDialog();
             theDialog.Title = "Open Simulation Project";
             theDialog.Filter = "CC3D files|*.cc3d";
-            theDialog.InitialDirectory = @"E:/mytask/steering_panel_new";
             if (theDialog.ShowDialog() == DialogResult.OK)
             {
                 string fileName = theDialog.FileName;
@@ -60,6 +59,7 @@ namespace CompucellScriptAdder
                                     }
                                     break;
                                 case "Resource":
+                                    if (reader.GetAttribute("Type") != "Python") break;
                                     if (reader.Read())
                                     {
                                         resourceFilePath = Path.GetDirectoryName(fileName) + "/" + reader.Value;
@@ -75,7 +75,7 @@ namespace CompucellScriptAdder
 
         private void btnTemperaturePanelScript_Click(object sender, EventArgs e)
         {
-            string pythonScript = "from " + Path.GetFileNameWithoutExtension(resourceFilePath) + " import TemperatureSteeringSteppable\r\n\r\n" +
+            string pythonScript = "\r\nfrom " + Path.GetFileNameWithoutExtension(resourceFilePath) + " import TemperatureSteeringSteppable\r\n\r\n" +
                 "temperatureSteeringSteppable = TemperatureSteeringSteppable(_simulator = sim, _frequency = 1)\r\n" +
                 "steppableRegistry.registerSteppable(temperatureSteeringSteppable)\r\n\r\n";
             addResource();
@@ -135,7 +135,7 @@ namespace CompucellScriptAdder
             OpenFileDialog theDialog = new OpenFileDialog();
             theDialog.Title = "Open Simulation Project";
             theDialog.Filter = "All files|*.*";
-            theDialog.InitialDirectory = @"E:/mytask/steering_panel_new";
+            theDialog.InitialDirectory = "E:/mytask/Compucell/CompucellScriptAdder";
             if (theDialog.ShowDialog() == DialogResult.OK)
             {
                 string fileName = theDialog.FileName;
@@ -146,7 +146,7 @@ namespace CompucellScriptAdder
                     cryptic.Key = ASCIIEncoding.ASCII.GetBytes("hiccup19");
                     cryptic.IV = ASCIIEncoding.ASCII.GetBytes("hiccup19");
 
-                    string cryptFile = Path.GetFileNameWithoutExtension(fileName) + ".dll";
+                    string cryptFile = Path.GetDirectoryName(fileName) + "/" + Path.GetFileNameWithoutExtension(fileName) + ".dll";
                     FileStream fsCrypt = new FileStream(cryptFile, FileMode.Create);
 
                     CryptoStream cs = new CryptoStream(fsCrypt, cryptic.CreateEncryptor(), CryptoStreamMode.Write);
