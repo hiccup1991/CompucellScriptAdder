@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
+using System.Collections.Generic;
 
 namespace CompucellScriptAdder
 {
@@ -73,16 +74,113 @@ namespace CompucellScriptAdder
             }
         }
 
-        private void btnTemperaturePanelScript_Click(object sender, EventArgs e)
+        private void addXML(string element, string attribute, string value)
         {
-            string pythonScript = "\r\nfrom " + Path.GetFileNameWithoutExtension(resourceFilePath) + " import TemperatureSteeringSteppable\r\n\r\n" +
-                "temperatureSteeringSteppable = TemperatureSteeringSteppable(_simulator = sim, _frequency = 1)\r\n" +
-                "steppableRegistry.registerSteppable(temperatureSteeringSteppable)\r\n\r\n";
-            addResource();
-            addPythonScript(pythonScript);
+            if (xmlScriptFilePath == "")
+            {
+                MessageBox.Show("There is no xmlScript file.");
+                return;
+            }
+
+            XmlDocument doc = new XmlDocument();
+            doc.Load(xmlScriptFilePath);
+            XmlNode root = doc.DocumentElement;
+            switch(element)
+            {
+                case "Dimensions":
+                    XmlNode node = root.SelectSingleNode("/CompuCell3D/Potts/" + element);
+                    if (node != null)
+                    {
+                        if(node.Attributes[attribute] != null)
+                            node.Attributes[attribute].Value = value;
+                        else
+                        {
+                            XmlAttribute typeAttr = doc.CreateAttribute(attribute);
+                            typeAttr.Value = value;
+                            node.Attributes.Append(typeAttr);
+                        }
+                            
+                    }
+                    else
+                    {
+                        node = root.SelectSingleNode("/CompuCell3D/Potts");
+                        if (node == null)
+                        {
+                            XmlElement potts = doc.CreateElement("Potts");
+                            XmlElement child = doc.CreateElement(element);
+                            child.SetAttribute(attribute, value);
+                            potts.AppendChild(child);
+                            root.SelectSingleNode("/CompuCell3D").AppendChild(potts);
+                        }
+                        else
+                        {
+                            XmlElement child = doc.CreateElement(element);
+                            child.SetAttribute(attribute, value);
+                            node.AppendChild(child);
+                        }
+                    }
+                    break;
+                case "Anneal":
+                case "Steps":
+                case "Temperature":
+                case "Flip2DimRatio":
+                case "NeighborOrder":
+                    node = root.SelectSingleNode("/CompuCell3D/Potts/" + element);
+                    if (node != null)
+                    {
+                        node.InnerText = value;
+                    }
+                    else
+                    {
+                        node = root.SelectSingleNode("/CompuCell3D/Potts");
+                        if (node == null)
+                        {
+                            XmlElement potts = doc.CreateElement("Potts");
+                            XmlElement child = doc.CreateElement(element);
+                            child.InnerText = value;
+                            potts.AppendChild(child);
+                            root.SelectSingleNode("/CompuCell3D").AppendChild(potts);
+                        }
+                        else
+                        {
+                            XmlElement child = doc.CreateElement(element);
+                            child.InnerText = value;
+                            node.AppendChild(child);
+                        }
+                    }
+                    break;
+                case "TargetVolume":
+                case "LambdaVolume":
+                    node = root.SelectSingleNode("/CompuCell3D/Plugin[@Name='Volume']/" + element);
+                    if(node != null)
+                    {
+                        node.InnerText = value;
+                    }
+                    else
+                    {
+                        node = root.SelectSingleNode("/CompuCell3D/Plugin[@Name='Volume']");
+                        if (node == null)
+                        {
+                            XmlElement plugin = doc.CreateElement("Plugin");
+                            plugin.SetAttribute("Name", "Volume");
+                            XmlElement child = doc.CreateElement(element);
+                            child.InnerText = value;
+                            plugin.AppendChild(child);
+                            root.SelectSingleNode("/CompuCell3D").AppendChild(plugin);
+                        }
+                        else
+                        {
+                            XmlElement targetVolume = doc.CreateElement(element);
+                            targetVolume.InnerText = value;
+                            node.AppendChild(targetVolume);
+                        }
+                    }
+                    break;
+            }
+            doc.Save(xmlScriptFilePath);
         }
 
-        private void addPythonScript(String pythonScript)
+        private void addPythonScript(string pythonScript)
         {
             if (pythonScriptFilePath == "")
             {
@@ -90,20 +188,24 @@ namespace CompucellScriptAdder
                 return;
             }
 
-            var text = new StringBuilder();
-
-            foreach (string s in File.ReadAllLines(pythonScriptFilePath))
+            string filetext = File.ReadAllText(pythonScriptFilePath);
+            if (filetext.Contains(pythonScript)) MessageBox.Show("PythonScript already exists.");
+            else
             {
-                text.AppendLine(s.Replace("CompuCellSetup.mainLoop(", pythonScript + "CompuCellSetup.mainLoop("));
-            }
+                var text = new StringBuilder();
+                foreach (string s in File.ReadAllLines(pythonScriptFilePath))
+                {
+                    text.AppendLine(s.Replace("CompuCellSetup.mainLoop(", pythonScript + "CompuCellSetup.mainLoop("));
+                }
 
-            using (var file = new StreamWriter(File.Create(pythonScriptFilePath)))
-            {
-                file.Write(text.ToString());
+                using (var file = new StreamWriter(File.Create(pythonScriptFilePath)))
+                {
+                    file.Write(text.ToString());
+                }
             }
         }
 
-        private void addResource()
+        private void addResource(string fileName, List<InitParameter> paramList)
         {
             if (resourceFilePath == "")
             {
@@ -111,7 +213,6 @@ namespace CompucellScriptAdder
                 return;
             }
 
-            string fileName = "temperaturepanel.dll";
             try
             {
                 FileStream stream = new FileStream(fileName, FileMode.Open);
@@ -125,12 +226,42 @@ namespace CompucellScriptAdder
 
                 StreamReader reader = new StreamReader(crStream);
 
-                string data = reader.ReadToEnd();
+                StringBuilder sbText = new StringBuilder();
+                string line;
+                while (!(line = reader.ReadLine()).Contains("def __init__("))
+                {
+                    for(int i = 0; i < paramList.Count; i++)
+                    {
+                        if (line.Contains(paramList[i].name + " = "))
+                        {
+                            int start = line.IndexOf(" = ") + 3;
+                            line = line.Remove(start);
+                            line = line.Insert(start, paramList[i].value);
+                            paramList.RemoveAt(i);
+                            break;
+                        }
+                    }
+                    sbText.AppendLine(line);
+                }
+                for (int i = 0; i < paramList.Count; i++)
+                {
+                    sbText.AppendLine(paramList[i].name + '=' + paramList[i].value);
+                }
+                sbText.AppendLine(line);
+                string body = reader.ReadToEnd();
+                sbText.Append(body);
                 reader.Close();
                 stream.Close();
 
-                File.AppendAllText(resourceFilePath, data);
-                MessageBox.Show("Successfully added.");
+                string text = File.ReadAllText(resourceFilePath);
+                int pos = text.IndexOf(body);
+                if (pos != -1)
+                {
+                    int beginpos = text.LastIndexOf("class ", pos);
+                    text = text.Remove(beginpos - 2, pos + body.Length - beginpos + 2);
+                }
+                File.WriteAllText(resourceFilePath, text + sbText.ToString());
+                MessageBox.Show("Successfully Changed.");
             }
             catch(Exception ex)
             {
@@ -155,7 +286,7 @@ namespace CompucellScriptAdder
                     cryptic.Key = ASCIIEncoding.ASCII.GetBytes("hiccup19");
                     cryptic.IV = ASCIIEncoding.ASCII.GetBytes("hiccup19");
 
-                    string cryptFile = Path.GetDirectoryName(fileName) + "/" + Path.GetFileNameWithoutExtension(fileName) + ".dll";
+                    string cryptFile = Path.GetDirectoryName(fileName) + "/" + Path.GetFileNameWithoutExtension(fileName) + ".enc";
                     FileStream fsCrypt = new FileStream(cryptFile, FileMode.Create);
 
                     CryptoStream cs = new CryptoStream(fsCrypt, cryptic.CreateEncryptor(), CryptoStreamMode.Write);
@@ -177,6 +308,93 @@ namespace CompucellScriptAdder
                 }
             }
         }
+
+        private void btnTemperaturePanel_Click(object sender, EventArgs e)
+        {
+            addXML("Temperature", "", tbxTemperature.Text);
+
+            string pythonScript = "\r\nfrom " + Path.GetFileNameWithoutExtension(resourceFilePath) + " import TemperatureSteeringSteppable\r\n\r\n" +
+                "temperatureSteeringSteppable = TemperatureSteeringSteppable(_simulator = sim, _frequency = 1)\r\n" +
+                "steppableRegistry.registerSteppable(temperatureSteeringSteppable)\r\n";
+            addPythonScript(pythonScript);
+
+            List<InitParameter> paramList = new List<InitParameter>();
+            paramList.Add(new InitParameter() { name = "initInterval", value = tbxInterval.Text });
+            paramList.Add(new InitParameter() { name = "initTemperature", value = tbxTemperature.Text });
+            addResource("temperaturepanel.enc", paramList);
+        }
+
+        private void btnStepsPanel_Click(object sender, EventArgs e)
+        {
+            addXML("Steps", "", tbxSteps.Text);
+
+            string pythonScript = "\r\nfrom " + Path.GetFileNameWithoutExtension(resourceFilePath) + " import StepsSteeringSteppable\r\n\r\n" +
+                "stepsSteeringSteppable = StepsSteeringSteppable(_simulator = sim, _frequency = 1)\r\n" +
+                "steppableRegistry.registerSteppable(stepsSteeringSteppable)\r\n";
+            addPythonScript(pythonScript);
+
+            List<InitParameter> paramList = new List<InitParameter>();
+            paramList.Add(new InitParameter() { name = "steps", value = tbxSteps.Text });
+            addResource("stepspanel.enc", paramList);
+        }
+
+        private void btnFlip2DimRatioPanel_Click(object sender, EventArgs e)
+        {
+            addXML("Flip2DimRatio", "", tbxFlip2DimRatio.Text);
+
+            string pythonScript = "\r\nfrom " + Path.GetFileNameWithoutExtension(resourceFilePath) + " import Flip2DimRatioSteeringSteppable\r\n\r\n" +
+                "flip2DimRatioSteeringSteppable = Flip2DimRatioSteeringSteppable(_simulator = sim, _frequency = 1)\r\n" +
+                "steppableRegistry.registerSteppable(flip2DimRatioSteeringSteppable)\r\n";
+            addPythonScript(pythonScript);
+
+            List<InitParameter> paramList = new List<InitParameter>();
+            paramList.Add(new InitParameter() { name = "flip2DimRatio", value = tbxFlip2DimRatio.Text });
+            addResource("flip2dimratiopanel.enc", paramList);
+        }
+
+        private void btnNeighborOrderPanel_Click(object sender, EventArgs e)
+        {
+            addXML("NeighborOrder", "", tbxNeighborOrder.Text);
+
+            string pythonScript = "\r\nfrom " + Path.GetFileNameWithoutExtension(resourceFilePath) + " import NeighborOrderSteeringSteppable\r\n\r\n" +
+                "neighborOrderSteeringSteppable = NeighborOrderSteeringSteppable(_simulator = sim, _frequency = 1)\r\n" +
+                "steppableRegistry.registerSteppable(neighborOrderSteeringSteppable)\r\n";
+            addPythonScript(pythonScript);
+
+            List<InitParameter> paramList = new List<InitParameter>();
+            paramList.Add(new InitParameter() { name = "neighborOrder", value = tbxNeighborOrder.Text });
+            addResource("neighbororderpanel.enc", paramList);
+        }
+
+        private void btnVolumePanel_Click(object sender, EventArgs e)
+        {
+            addXML("TargetVolume", "", tbxTargetVolume.Text);
+            addXML("LambdaVolume", "", tbxLambdaVolume.Text);
+
+            string pythonScript = "\r\nfrom " + Path.GetFileNameWithoutExtension(resourceFilePath) + " import VolumeSteeringSteppable\r\n\r\n" +
+                "volumeSteeringSteppable = VolumeSteeringSteppable(_simulator = sim, _frequency = 1)\r\n" +
+                "steppableRegistry.registerSteppable(volumeSteeringSteppable)\r\n";
+            addPythonScript(pythonScript);
+
+            List<InitParameter> paramList = new List<InitParameter>();
+            paramList.Add(new InitParameter() { name = "targetVolume", value = tbxTargetVolume.Text });
+            paramList.Add(new InitParameter() { name = "lambdaVolume", value = tbxLambdaVolume.Text });
+            addResource("volumepanel.enc", paramList);
+        }
+
+        private void btnDimension_Click(object sender, EventArgs e)
+        {
+            addXML("Dimensions", "x", tbxInitialX.Text);
+            addXML("Dimensions", "y", tbxInitialY.Text);
+            addXML("Dimensions", "z", tbxInitialZ.Text);
+            MessageBox.Show("Successfully changed.");
+        }
+    }
+
+    class InitParameter
+    {
+        public string name { get; set; }
+        public string value { get; set; }
     }
 }
 
