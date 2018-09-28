@@ -47,8 +47,8 @@ namespace CompucellScriptAdder
                                 case "XMLScript":
                                     if (reader.Read())
                                     {
-                                        resourceFilePath = Path.GetDirectoryName(fileName) + "/" + reader.Value;
-                                        //MessageBox.Show(resourceFilePath);
+                                        xmlScriptFilePath = Path.GetDirectoryName(fileName) + "/" + reader.Value;
+                                        //MessageBox.Show(xmlScriptFilePath);
                                     }
                                     break;
                                 case "PythonScript":
@@ -84,7 +84,11 @@ namespace CompucellScriptAdder
 
         private void addPythonScript(String pythonScript)
         {
-            if (pythonScriptFilePath == "") return;
+            if (pythonScriptFilePath == "")
+            {
+                MessageBox.Show("There is no PythonScript file.");
+                return;
+            }
 
             var text = new StringBuilder();
 
@@ -101,7 +105,12 @@ namespace CompucellScriptAdder
 
         private void addResource()
         {
-            if (resourceFilePath == "") return;
+            if (resourceFilePath == "")
+            {
+                MessageBox.Show("There is no Resource(Type=Python) file.");
+                return;
+            }
+
             string fileName = "temperaturepanel.dll";
             try
             {
