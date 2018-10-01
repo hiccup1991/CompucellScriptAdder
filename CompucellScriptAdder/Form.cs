@@ -215,7 +215,7 @@ namespace CompucellScriptAdder
 
             try
             {
-                FileStream stream = new FileStream(fileName, FileMode.Open);
+                /*FileStream stream = new FileStream(fileName, FileMode.Open);
 
                 DESCryptoServiceProvider cryptic = new DESCryptoServiceProvider();
 
@@ -224,7 +224,9 @@ namespace CompucellScriptAdder
 
                 CryptoStream crStream = new CryptoStream(stream, cryptic.CreateDecryptor(), CryptoStreamMode.Read);
 
-                StreamReader reader = new StreamReader(crStream);
+                StreamReader reader = new StreamReader(crStream);*/
+
+                StreamReader reader = new StreamReader(fileName);
 
                 StringBuilder sbText = new StringBuilder();
                 string line;
@@ -251,7 +253,7 @@ namespace CompucellScriptAdder
                 string body = reader.ReadToEnd();
                 sbText.Append(body);
                 reader.Close();
-                stream.Close();
+                //stream.Close();
 
                 string text = File.ReadAllText(resourceFilePath);
                 int pos = text.IndexOf(body);
@@ -321,7 +323,8 @@ namespace CompucellScriptAdder
             List<InitParameter> paramList = new List<InitParameter>();
             paramList.Add(new InitParameter() { name = "initInterval", value = tbxInterval.Text });
             paramList.Add(new InitParameter() { name = "initTemperature", value = tbxTemperature.Text });
-            addResource("temperaturepanel.enc", paramList);
+            //addResource("temperaturepanel.enc", paramList);
+            addResource("temperaturepanel.py", paramList);
         }
 
         private void btnStepsPanel_Click(object sender, EventArgs e)
@@ -335,7 +338,8 @@ namespace CompucellScriptAdder
 
             List<InitParameter> paramList = new List<InitParameter>();
             paramList.Add(new InitParameter() { name = "steps", value = tbxSteps.Text });
-            addResource("stepspanel.enc", paramList);
+            //addResource("stepspanel.enc", paramList);
+            addResource("stepspanel.py", paramList);
         }
 
         private void btnFlip2DimRatioPanel_Click(object sender, EventArgs e)
@@ -349,7 +353,8 @@ namespace CompucellScriptAdder
 
             List<InitParameter> paramList = new List<InitParameter>();
             paramList.Add(new InitParameter() { name = "flip2DimRatio", value = tbxFlip2DimRatio.Text });
-            addResource("flip2dimratiopanel.enc", paramList);
+            //addResource("flip2dimratiopanel.enc", paramList);
+            addResource("flip2dimratiopanel.py", paramList);
         }
 
         private void btnNeighborOrderPanel_Click(object sender, EventArgs e)
@@ -363,7 +368,8 @@ namespace CompucellScriptAdder
 
             List<InitParameter> paramList = new List<InitParameter>();
             paramList.Add(new InitParameter() { name = "neighborOrder", value = tbxNeighborOrder.Text });
-            addResource("neighbororderpanel.enc", paramList);
+            //addResource("neighbororderpanel.enc", paramList);
+            addResource("neighbororderpanel.py", paramList);
         }
 
         private void btnVolumePanel_Click(object sender, EventArgs e)
@@ -379,7 +385,8 @@ namespace CompucellScriptAdder
             List<InitParameter> paramList = new List<InitParameter>();
             paramList.Add(new InitParameter() { name = "targetVolume", value = tbxTargetVolume.Text });
             paramList.Add(new InitParameter() { name = "lambdaVolume", value = tbxLambdaVolume.Text });
-            addResource("volumepanel.enc", paramList);
+            //addResource("volumepanel.enc", paramList);
+            addResource("volumepanel.py", paramList);
         }
 
         private void btnDimension_Click(object sender, EventArgs e)
